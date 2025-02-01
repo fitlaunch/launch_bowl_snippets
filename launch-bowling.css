@@ -1,0 +1,244 @@
+#current-selections-container {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+#current-selections {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+.current-selection {
+    flex: 1;
+    text-align: center;
+    color: #333; /* Darker font color */
+    border: 1px solid #ccc; /* Grey border */
+    border-radius: 5px; /* Slightly rounded corners */
+    padding: 5px;
+    margin: 5px;
+}
+
+#main-content {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 30px; /* Indent 30 pixels from the left and right */
+    gap: 30px; /* Add space between the two segments */
+}
+
+#selections-form-container {
+    width: 40vw; /* Set width to 45% of the viewport width */
+    margin-right: 30px; /* Indent 30 pixels from the right */
+    margin-left: 30px; /* Indent 30 pixels from the left */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the content */
+}
+
+#names-list-container {
+    width: 40vw; /* Set width to 45% of the viewport width */
+    margin-right: 30px; /* Indent 30 pixels from the right */
+    margin-left: 30px; /* Indent 30 pixels from the left */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the content */
+}
+
+#names-list {
+    height: 450px; /* Set height to 450 pixels */
+    overflow-y: scroll; /* Enable vertical scrolling */
+    border: 1px solid #ccc; /* Add border */
+    padding: 10px;
+    width: 80%; /* Ensure the list takes the full width of the container */
+}
+
+.name-item {
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+#search-box {
+    width: 80%;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#sort-options {
+    width: 80%;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#selections-form input {
+    width: 80%;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#selections-form button {
+    width: 70%;
+    padding: 10px;
+    background-color: #0073aa;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+#selections-form button:hover {
+    background-color: #ff9900;
+}
+
+#picks-times-container {
+    text-align: center;
+    padding: 20px;
+    border: 2px solid #ff9900; /* Accent color border */
+    background-color: #333; /* Dark background to stand out */
+    border-radius: 10px; /* Rounded corners */
+    margin-bottom: 20px;
+    color: #fff; /* White text for readability */
+}
+
+#picks-times-container h3 {
+    color: #ff9900; /* Accent color for headings */
+    margin-bottom: 10px;
+}
+
+#picks-times-container p {
+    margin: 5px 0;
+}
+
+#week-info-container {
+    text-align: center;
+    padding: 20px;
+    border: 2px solid #ff9900; /* Accent color border */
+    background-color: #333; /* Dark background to stand out */
+    border-radius: 10px; /* Rounded corners */
+    margin-bottom: 20px;
+    color: #fff; /* White text for readability */
+}
+
+#week-info-container h3 {
+    color: #fff; /* White color for titles */
+    margin-bottom: 10px;
+}
+
+#current-week-number, #countdown-timer {
+    color: #ff9900; /* Accent color for week number and countdown timer */
+    font-size: 1.5em;
+    margin: 5px 0;
+}
+
+#historical-selections-container {
+    margin-top: 20px;
+}
+
+#historical-selections-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#historical-selections-table th, #historical-selections-table td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+    font-size: 12px;
+}
+
+#historical-selections-table th {
+    background-color: #ff9900;
+}
+
+.historical-selection {
+    padding: 5px;
+    font-size: 12px;
+}
+
+/* Styles for the admin submission form */
+#admin-submission-form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+#admin-submission-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #ff9900;
+}
+
+#admin-submission-form input[type="text"],
+#admin-submission-form input[type="number"] {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+#admin-submission-form button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #0073aa;
+    color: #ff9900;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#admin-submission-form button:hover {
+    background-color: #005177;
+}
+
+/* Styles for the scores display */
+#display-scores-container {
+    border: 2px solid #ff9900; /* Adjust the border size and color as needed */
+    padding: 10px; /* Optional: Add padding for better appearance */
+    margin: 10px 0; /* Optional: Add margin for spacing */
+    background-color: #333; /* Dark background to stand out */
+    border-radius: 10px; /* Rounded corners */
+    text-align: center;
+}
+
+.score-value {
+    color: #ff9900; /* Orange accent color */
+    font-size: 24px; /* Increase font size */
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Styles for the leaderboard and weekly top pickers */
+#leaderboard-container, #weekly-top-pickers-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#leaderboard-container h3, #weekly-top-pickers-container h3 {
+    margin-bottom: 10px;
+}
+
+#leaderboard-container table, #weekly-top-pickers-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+
+#leaderboard-container th, #weekly-top-pickers-container th,
+#leaderboard-container td, #weekly-top-pickers-container td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+}
+
+#leaderboard-container th, #weekly-top-pickers-container th {
+    background-color: #ff9900;
+    color: #fff;
+}
