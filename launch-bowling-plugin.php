@@ -40,7 +40,7 @@ function get_current_week_number() {
 function get_event_title() {
     global $wpdb;
     $table_schedule = $wpdb->prefix . 'bowling_schedule';
-    $today = current_time('Y-m-d');
+    $today = current_time('Y-m-d H:i:s');
 
     $event_title = $wpdb->get_var($wpdb->prepare("
         SELECT event_title 
@@ -213,7 +213,7 @@ function launch_bowling_title_form() {
     ?>
     <div id="selections-form-container">
         <h2 id="event-title"><?php echo esc_html($event_title); ?></h2>
-        <h3 id="selections-title">Make your pro bowler picks</h3>
+        <h3 id="selections-title">Submit your pro bowler picks</h3>
         <form id="selections-form">
             <input type="text" id="selection-1" name="selection_1" placeholder="Selection 1" readonly>
             <input type="text" id="selection-2" name="selection_2" placeholder="Selection 2" readonly>
@@ -230,7 +230,7 @@ function launch_bowling_title_form() {
 add_shortcode('launch_bowling_title_form', 'launch_bowling_title_form');
 
 
-// Shortcode to display names list and features
+// Shortcode to display pro bowler names list and features
 function launch_bowling_names_list() {
     global $wpdb;
     $table_names = $wpdb->prefix . 'pro_bowlers';
@@ -310,14 +310,13 @@ function launch_bowling_week_info() {
     $table_schedule = $wpdb->prefix . 'bowling_schedule';
     $today = current_time('Y-m-d H:i:s');
 
-    // Get the current week's information
+    // Get the current week's information and timer
     $current_week = $wpdb->get_row($wpdb->prepare("
         SELECT week_number, end_date 
         FROM $table_schedule 
         WHERE start_date <= %s AND end_date >= %s
         LIMIT 1
     ", $today, $today));
-
     ob_start();
     ?>
     <div id="week-info-container">
@@ -336,7 +335,7 @@ function launch_bowling_week_info() {
 add_shortcode('launch_bowling_week_info', 'launch_bowling_week_info');
 
 
-// Shortcode to display historical selections
+// Shortcode to display historical selections - move Jquery to JS file?
 function launch_bowling_historical_selections() {
     ob_start();
     ?>
@@ -504,6 +503,7 @@ function calculate_and_update_scores() {
     global $wpdb;
     $table_selections = $wpdb->prefix . 'bowling_picks';
     $table_placings = $wpdb->prefix . 'tournament_placings';
+    $table_users_bowling = $wpdb->prefix . 'users_bowling';
 
     // Fetch all user selections (removed status check)
     $user_selections = $wpdb->get_results("SELECT * FROM $table_selections", ARRAY_A);
@@ -517,14 +517,9 @@ function calculate_and_update_scores() {
         $results_by_week[$result['week_number']] = $result;
     }
 
-    // Debugging: Log the results by week
-    error_log("Results by Week: " . print_r($results_by_week, true));
-
     // Iterate through user selections and calculate scores
     foreach ($user_selections as $selection) {
         $week_number = $selection['week'];
-        // Debugging: Log the week number and user selection being processed
-        error_log("Processing Week: " . $week_number . " | User Selection: " . print_r($selection, true));
 
         if (isset($results_by_week[$week_number])) {
             $result = $results_by_week[$week_number];
@@ -550,45 +545,41 @@ function calculate_and_update_scores() {
             );
 
             // Compare user selections with actual results and assign points
-foreach ($points_awards as $position => $points) {
-    $selection_position = '';
-    switch ($position) {
-        case 'first_place':
-            $selection_position = 'selection_1';
-            break;
-        case 'second_place':
-            $selection_position = 'selection_2';
-            break;
-        case 'third_place':
-            $selection_position = 'selection_3';
-            break;
-        case 'fourth_place':
-            $selection_position = 'selection_4';
-            break;
-        case 'fifth_place':
-            $selection_position = 'selection_5';
-            break;
-        case 'wildcard':
-            $selection_position = 'selection_wild';
-            break;
-    }
+            foreach ($points_awards as $position => $points) {
+                $selection_position = '';
+                switch ($position) {
+                    case 'first_place':
+                        $selection_position = 'selection_1';
+                        break;
+                    case 'second_place':
+                        $selection_position = 'selection_2';
+                        break;
+                    case 'third_place':
+                        $selection_position = 'selection_3';
+                        break;
+                    case 'fourth_place':
+                        $selection_position = 'selection_4';
+                        break;
+                    case 'fifth_place':
+                        $selection_position = 'selection_5';
+                        break;
+                    case 'wildcard':
+                        $selection_position = 'selection_wild';
+                        break;
+                }
 
-    if (isset($selection[$selection_position]) && $selection[$selection_position] == $result[$position]) {
-        $score += $points * $multiplier;
-    } elseif (isset($selection[$selection_position]) && in_array($selection[$selection_position], array($result['first_place'], $result['second_place'], $result['third_place'], $result['fourth_place'], $result['fifth_place']))) {
-        $actual_position = array_search($selection[$selection_position], array($result['first_place'], $result['second_place'], $result['third_place'], $result['fourth_place'], $result['fifth_place']));
-        $selected_position = array_search($position, array_keys($points_awards));
-        if ($actual_position !== false && abs($actual_position - $selected_position) == 1) {
-            $score += 75;
-        } else {
-            $score += 40;
-        }
-    }
-}
-
-
-            // Debugging: Log the calculated score
-            error_log("User ID: " . $selection['user_id'] . " | Week: " . $week_number . " | Score: " . $score);
+                if (isset($selection[$selection_position]) && $selection[$selection_position] == $result[$position]) {
+                    $score += $points * $multiplier;
+                } elseif (isset($selection[$selection_position]) && in_array($selection[$selection_position], array($result['first_place'], $result['second_place'], $result['third_place'], $result['fourth_place'], $result['fifth_place']))) {
+                    $actual_position = array_search($selection[$selection_position], array($result['first_place'], $result['second_place'], $result['third_place'], $result['fourth_place'], $result['fifth_place']));
+                    $selected_position = array_search($position, array_keys($points_awards));
+                    if ($actual_position !== false && abs($actual_position - $selected_position) == 1) {
+                        $score += 75;
+                    } else {
+                        $score += 40;
+                    }
+                }
+            }
 
             // Update the user's score in the database
             $wpdb->update(
@@ -596,6 +587,27 @@ foreach ($points_awards as $position => $points) {
                 array('points' => $score),
                 array('id' => $selection['id'])
             );
+
+            // Update the cumulative points for the user for the 2025 season.  Is waiting for status to be Archived or ...complete?
+            $user_id = $selection['user_id'];
+            $current_points = $wpdb->get_var($wpdb->prepare("SELECT `2025_points` FROM $table_users_bowling WHERE user_id = %d", $user_id));
+            if ($current_points === null) {
+                // Insert new record if user does not exist
+                $wpdb->insert(
+                    $table_users_bowling,
+                    array(
+                        'user_id' => $user_id,
+                        '2025_points' => $score
+                    )
+                );
+            } else {
+                // Update existing record
+                $wpdb->update(
+                    $table_users_bowling,
+                    array('2025_points' => $current_points + $score),
+                    array('user_id' => $user_id)
+                );
+            }
         } else {
             // Debugging: Log if no results found for the week
             error_log("No results found for Week: " . $week_number);
@@ -623,29 +635,30 @@ if (!function_exists('launch_bowling_display_scores')) {
         global $wpdb;
         $user_id = get_current_user_id();
         $table_selections = $wpdb->prefix . 'bowling_picks';
+        $table_users_bowling = $wpdb->prefix . 'users_bowling';
 
-        // Fetch the current week's score
+        // Fetch the current week's score. Update status call to 'complete' when status types updated
         $current_week_score = $wpdb->get_var($wpdb->prepare("
             SELECT points 
             FROM $table_selections 
-            WHERE user_id = %d AND status = 'active' 
+            WHERE user_id = %d AND status = 'archived' 
             ORDER BY week DESC 
             LIMIT 1
         ", $user_id));
 
-        // Fetch the cumulative season score
+        // Fetch the cumulative season score for 2025
         $cumulative_score = $wpdb->get_var($wpdb->prepare("
-            SELECT SUM(points) 
-            FROM $table_selections 
-            WHERE user_id = %d AND status = 'archived'
+            SELECT `2025_points` 
+            FROM $table_users_bowling 
+            WHERE user_id = %d
         ", $user_id));
 
         ob_start();
         ?>
         <div id="display-scores-container">
-            <h3>Current Week's Score</h3>
+            <h3>Last Event Week's Score</h3>
             <p class="score-value"><?php echo esc_html($current_week_score); ?></p>
-            <h3>Season Total Score</h3>
+            <h3>2025 Season Total Score</h3>
             <p class="score-value"><?php echo esc_html($cumulative_score); ?></p>
         </div>
         <?php
@@ -662,7 +675,7 @@ if (!function_exists('launch_bowling_leaderboard')) {
         $table_selections = $wpdb->prefix . 'bowling_picks';
         $table_users = $wpdb->prefix . 'users';
 
-        // Fetch the top 5 users with the highest season total points
+        // Fetch the top 5 users with the highest season total points 
         $leaderboard = $wpdb->get_results("
             SELECT u.display_name, SUM(s.points) as cumulative_score
             FROM $table_selections s
@@ -676,10 +689,10 @@ if (!function_exists('launch_bowling_leaderboard')) {
         ob_start();
         ?>
         <div id="leaderboard-container">
-            <h3>Leaderboard</h3>
+            <h3>Overall Leaderboard</h3>
             <ul>
                 <?php foreach ($leaderboard as $user): ?>
-                    <li><?php echo esc_html($user->display_name . ' - ' . $user->cumulative_score . ' points'); ?></li>
+                    <li><?php echo esc_html($user->display_name. ' - ' . $user->cumulative_score . ' points'); ?></li>
                 <?php endforeach; ?>
             </ul>
         </div>
@@ -707,12 +720,12 @@ if (!function_exists('launch_bowling_weekly_top_pickers')) {
             LIMIT 1
         ", $today, $today, $today));
 
-        // Fetch the top 5 point getters for the current week
+        // Fetch the top 5 point getters for the current week - when statuses updated these should reflect 'completed'
         $weekly_top_pickers = $wpdb->get_results($wpdb->prepare("
             SELECT u.display_name, s.points
             FROM $table_selections s
             JOIN $table_users u ON s.user_id = u.ID
-            WHERE s.week = %d AND s.status = 'active'
+            WHERE s.week = %d AND s.status = 'archived'
             ORDER BY s.points DESC
             LIMIT 5
         ", $current_week));
