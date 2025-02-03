@@ -19,6 +19,8 @@ function launch_bowling_enqueue_scripts() {
 }
 add_action('wp_enqueue_scripts', 'launch_bowling_enqueue_scripts');
 
+
+
 // Determine the current week number based on the bowling_schedule table
 function get_current_week_number() {
     global $wpdb;
@@ -34,26 +36,6 @@ function get_current_week_number() {
     ", $today));
 
     return $week_number;
-}
-
-// Get the event title based on the current date
-function get_event_title() {
-    global $wpdb;
-    $table_schedule = $wpdb->prefix . 'bowling_schedule';
-    $today = current_time('Y-m-d H:i:s');
-
-    $event_title = $wpdb->get_var($wpdb->prepare("
-        SELECT event_title 
-        FROM $table_schedule 
-        WHERE start_date <= %s AND end_date >= %s
-        LIMIT 1
-    ", $today, $today));
-
-    if ($event_title) {
-        return $event_title;
-    } else {
-        return 'Picks are closed at this time';
-    }
 }
 
 
@@ -205,6 +187,26 @@ function launch_bowling_current_selections() {
 add_shortcode('launch_bowling_current_selections', 'launch_bowling_current_selections');
 
 
+// Get the event title based on the current date
+function get_event_title() {
+    global $wpdb;
+    $table_schedule = $wpdb->prefix . 'bowling_schedule';
+    $today = current_time('Y-m-d H:i:s');
+
+    $event = $wpdb->get_row($wpdb->prepare("
+        SELECT event_title, tier
+        FROM $table_schedule 
+        WHERE start_date <= %s AND end_date >= %s
+        LIMIT 1
+    ", $today, $today));
+
+    if ($event) {
+        return $event->event_title . ' - Tier ' . $event->tier;
+    } else {
+        return 'Picks are closed at this time';
+    }
+}
+
 // Shortcode to display event title and form
 function launch_bowling_title_form() {
     $event_title = get_event_title();
@@ -323,8 +325,7 @@ function launch_bowling_week_info() {
         <?php if ($current_week): ?>
             <h3>Current Week</h3>
             <p id="current-week-number"><?php echo esc_html($current_week->week_number); ?></p>
-            <h3>Pick Time Remaining</h3>
-            <p id="countdown-timer"></p>
+            
         <?php else: ?>
             <h3>No Active Week</h3>
         <?php endif; ?>
@@ -771,3 +772,80 @@ add_action('wp_ajax_check_picks_status', 'check_picks_status');
 add_action('wp_ajax_nopriv_check_picks_status', 'check_picks_status');
 
 
+// Shortcode to display countdown timer
+function launch_bowling_countdown() {
+    global $wpdb;
+    $table_schedule = $wpdb->prefix . 'bowling_schedule';
+    $today = current_time('Y-m-d H:i:s');
+
+    // Get the current week's event
+    $current_event = $wpdb->get_row($wpdb->prepare("
+        SELECT start_date, end_date
+        FROM $table_schedule 
+        WHERE start_date <= %s AND end_date >= %s
+        LIMIT 1
+    ", $today, $today));
+
+    // Get the next week's event
+    $next_event = $wpdb->get_row($wpdb->prepare("
+        SELECT start_date
+        FROM $table_schedule 
+        WHERE start_date > %s
+        ORDER BY start_date ASC
+        LIMIT 1
+    ", $today));
+
+    // Localize script with event dates
+    wp_localize_script('launch-bowling-js', 'ajax_object', array(
+        'current_event_end_date' => $current_event ? $current_event->end_date : '',
+        'next_event_start_date' => $next_event ? $next_event->start_date : ''
+    ));
+
+    ob_start();
+    ?>
+    <div id="countdown-container">
+        <h2 id="countdown-title"></h2>
+        <div id="countdown-timer"></div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var currentEventEndDate = new Date(ajax_object.current_event_end_date).getTime();
+        var nextEventStartDate = new Date(ajax_object.next_event_start_date).getTime();
+        var now = new Date().getTime();
+        var countdownTitle = document.getElementById('countdown-title');
+        var countdownTimer = document.getElementById('countdown-timer');
+
+        function updateCountdown() {
+            now = new Date().getTime();
+            var distance, title;
+
+            if (now <= currentEventEndDate) {
+                distance = currentEventEndDate - now;
+                title = 'Selection Time Remaining';
+            } else {
+                distance = nextEventStartDate - now;
+                title = 'Pick Window Opens In:';
+            }
+
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            countdownTitle.innerHTML = title;
+            countdownTimer.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+
+            if (distance < 0) {
+                clearInterval(x);
+                countdownTimer.innerHTML = "EXPIRED";
+            }
+        }
+
+        var x = setInterval(updateCountdown, 1000);
+        updateCountdown();
+    });
+    </script>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('launch_bowling_countdown', 'launch_bowling_countdown');
